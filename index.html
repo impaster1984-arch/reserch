@@ -1,0 +1,238 @@
+import React, { useState } from 'react';
+import { Lock, Unlock, LogOut, CheckCircle2, BarChart3, ShieldAlert } from 'lucide-react';
+
+const SURVEY_OPTIONS = [
+  "빅뱅이론과 진화론은 과학적 사실이고, 성경은 종교적 신화라고 생각한다.",
+  "성경을 믿고 싶지만, 학교에서 배운 빅뱅이론과 진화론이 사실에 가깝다고 생각한다.",
+  "빅뱅이론과 진화론도 주장이고, 성경도 종교적 주장이라고 생각한다.",
+  "빅뱅이론과 진화론에도 확신이 없고, 성경도 사실이라는 확신이 없다.",
+  "성경을 사실이라고 믿고, 빅뱅이론과 진화론도 과학적 사실이라고 생각한다.",
+  "빅뱅이론과 진화론은 가설일 뿐이고, 성경이 역사적 사실이라고 믿는다.",
+  "빅뱅이론과 진화론은 잘못된 주장이고, 성경이 사실이라고 확신한다.",
+  "빅뱅이론과 진화론이 잘못된 것과 성경이 사실인 것을 설명할 수 있다."
+];
+
+const OPTION_STYLES = [
+  "bg-red-500 hover:bg-red-600",
+  "bg-red-200 hover:bg-red-300",
+  "bg-lime-200 hover:bg-lime-300",
+  "bg-emerald-300 hover:bg-emerald-400",
+  "bg-cyan-500 hover:bg-cyan-600",
+  "bg-sky-500 hover:bg-sky-600",
+  "bg-blue-400 hover:bg-blue-500",
+  "bg-blue-600 hover:bg-blue-700"
+];
+
+export default function App() {
+  const [votes, setVotes] = useState(Array(SURVEY_OPTIONS.length).fill(0));
+  const [hasVoted, setHasVoted] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [loginError, setLoginError] = useState(false);
+
+  const totalVotes = votes.reduce((a, b) => a + b, 0);
+
+  const handleVote = (index) => {
+    const newVotes = [...votes];
+    newVotes[index] += 1;
+    setVotes(newVotes);
+    setHasVoted(true);
+  };
+
+  const handleAdminLogin = (e) => {
+    e.preventDefault();
+    // 관리자 비밀번호 (데모용으로 'admin' 설정)
+    if (passwordInput === 'admin') {
+      setIsAdmin(true);
+      setShowAdminLogin(false);
+      setPasswordInput('');
+      setLoginError(false);
+    } else {
+      setLoginError(true);
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center py-10 px-4 font-sans text-gray-800 relative">
+      
+      {/* 헤더 영역 */}
+      <header className="max-w-3xl w-full text-center mb-10 mt-8">
+        <h1 className="text-2xl md:text-3xl font-bold text-indigo-900 mb-4">
+          당신의 생각과 가장 가까운 것을 터치하세요
+        </h1>
+        <p className="text-lg font-bold text-gray-700">익명으로 진행되며, 결과는 관리자만 볼 수 있습니다.</p>
+      </header>
+
+      {/* 메인 컨텐츠 영역 */}
+      <main className="max-w-3xl w-full bg-white rounded-2xl shadow-lg overflow-hidden border border-gray-100 mb-10">
+        
+        {/* 관리자 뷰 */}
+        {isAdmin ? (
+          <div className="p-6 md:p-8 bg-indigo-50/30 animate-fade-in">
+            <div className="flex justify-between items-center mb-6 pb-4 border-b border-gray-200">
+              <h2 className="text-xl font-bold flex items-center text-indigo-800">
+                <BarChart3 className="mr-2 h-6 w-6" />
+                관리자 투표 결과
+              </h2>
+              <button 
+                onClick={handleAdminLogout}
+                className="flex items-center text-sm text-gray-600 hover:text-indigo-600 transition-colors"
+              >
+                <LogOut className="mr-1 h-4 w-4" /> 로그아웃
+              </button>
+            </div>
+            
+            <div className="mb-6 flex items-center justify-between bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
+              <span className="font-medium text-gray-700">총 참여자 수</span>
+              <span className="text-2xl font-bold text-indigo-600">{totalVotes}명</span>
+            </div>
+
+            <div className="space-y-4">
+              {SURVEY_OPTIONS.map((option, index) => {
+                const count = votes[index];
+                const percentage = totalVotes === 0 ? 0 : Math.round((count / totalVotes) * 100);
+                
+                return (
+                  <div key={index} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                    <div className="flex justify-between items-start mb-2 gap-4">
+                      <span className="text-sm md:text-base font-medium text-gray-800 leading-snug break-keep">
+                        {index + 1}. {option}
+                      </span>
+                      <span className="text-right font-bold text-indigo-600 whitespace-nowrap">
+                        {count}표 <span className="text-xs text-gray-400 font-normal">({percentage}%)</span>
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className="bg-indigo-500 h-2.5 rounded-full transition-all duration-500 ease-out" 
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          /* 일반 사용자 뷰 */
+          <div className="p-4 md:p-8">
+            {hasVoted ? (
+              <div className="py-16 flex flex-col items-center justify-center text-center animate-fade-in">
+                <div className="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mb-4">
+                  <CheckCircle2 className="w-10 h-10" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-2">투표가 완료되었습니다</h2>
+                <p className="text-gray-500">소중한 의견을 내주셔서 감사합니다.</p>
+                <button 
+                  onClick={() => setHasVoted(false)}
+                  className="mt-8 px-6 py-2 text-sm text-gray-500 hover:text-indigo-600 underline underline-offset-4 transition-colors"
+                >
+                  다른 기기에서 투표하기 (테스트용)
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3 animate-fade-in">
+                {SURVEY_OPTIONS.map((option, index) => (
+                  <button
+                    key={index}
+                    onClick={() => handleVote(index)}
+                    className={`w-full text-left p-4 md:p-5 rounded-xl border-2 border-transparent transition-all duration-200 flex items-start shadow-sm hover:shadow-md hover:-translate-y-0.5 text-gray-900 ${OPTION_STYLES[index]}`}
+                  >
+                    <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center rounded-full bg-white/90 text-gray-900 font-extrabold mr-4 shadow-sm transition-colors">
+                      {index + 1}
+                    </span>
+                    <span className="font-bold leading-relaxed break-keep mt-0.5">
+                      {option}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </main>
+
+      {/* 관리자 로그인 모달 */}
+      {showAdminLogin && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <div className="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl animate-fade-in-up">
+            <h3 className="text-xl font-bold mb-4 flex items-center">
+              <Lock className="mr-2 h-5 w-5 text-indigo-600" />
+              관리자 접근
+            </h3>
+            <form onSubmit={handleAdminLogin}>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  비밀번호를 입력하세요 (기본: admin)
+                </label>
+                <input
+                  type="password"
+                  value={passwordInput}
+                  onChange={(e) => setPasswordInput(e.target.value)}
+                  className={`w-full px-4 py-2 rounded-lg border focus:ring-2 focus:outline-none transition-shadow ${
+                    loginError ? 'border-red-300 focus:ring-red-200' : 'border-gray-300 focus:ring-indigo-200'
+                  }`}
+                  placeholder="비밀번호"
+                  autoFocus
+                />
+                {loginError && (
+                  <p className="mt-2 text-sm text-red-500 flex items-center">
+                    <ShieldAlert className="w-4 h-4 mr-1" />
+                    비밀번호가 일치하지 않습니다.
+                  </p>
+                )}
+              </div>
+              <div className="flex justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAdminLogin(false)}
+                  className="px-4 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg transition-colors font-medium"
+                >
+                  확인
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* 숨겨진 관리자 진입 버튼 */}
+      {!isAdmin && (
+        <button
+          onClick={() => {
+            setShowAdminLogin(true);
+            setLoginError(false);
+          }}
+          className="fixed bottom-4 right-4 p-3 text-gray-300 hover:text-indigo-400 bg-transparent hover:bg-white rounded-full transition-all duration-300 shadow-sm hover:shadow"
+          title="관리자 로그인"
+        >
+          <Lock className="h-5 w-5" />
+        </button>
+      )}
+
+      <style dangerouslySetInnerHTML={{__html: `
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}} />
+    </div>
+  );
+}
